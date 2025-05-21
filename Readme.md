@@ -1,34 +1,3 @@
-
-# Aplikasi Pengolahan Gambar dengan Flask
-
-Aplikasi ini menggunakan Flask untuk membuat antarmuka web yang memungkinkan pengguna untuk mengunggah gambar dan memprosesnya dengan berbagai tahap pengolahan, seperti segmentasi dan transformasi.
-
-
-## Menjalankan Aplikasi
-
-1. **Install Flask dan Dependensi Lainnya**
-   Jika belum menginstal Flask dan dependensi lainnya, pastikan untuk menginstalnya terlebih dahulu:
-
-   ```bash
-   pip install flask
-   ```
-
-2. **Mengupload Gambar**
-   Aplikasi ini memungkinkan pengguna untuk mengupload gambar melalui antarmuka web (`index.html`). Setelah gambar diunggah, aplikasi akan memprosesnya dengan skrip Python.
-
-3. **Pengolahan Gambar**
-   Skrip Python berikut digunakan untuk memproses gambar yang diunggah:
-
-   - **filter.py**: Skrip untuk menerapkan filter tertentu pada gambar.
-   - **segmentasi.py**: Skrip untuk membagi gambar menjadi segmen-segmen yang lebih kecil.
-   - **transform.py**: Skrip untuk melakukan transformasi pada gambar.
-   - **studicase.py**: Skrip untuk menganalisis hasil pengolahan gambar pada studi kasus tertentu.
-
-4. **Melihat Hasil**
-   Setelah pengolahan selesai, hasilnya akan disimpan dalam folder `processed/` dan dapat diakses oleh pengguna.
-
-## Cara Menjalankan Aplikasi Flask
-
 1. **Jalankan Aplikasi Flask**
    Untuk menjalankan aplikasi Flask, jalankan perintah berikut:
 
