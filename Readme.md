@@ -1,4 +1,4 @@
-Here’s an updated version of the README file to include instructions for using Flask:
+
 
 ```markdown
 # Aplikasi Pengolahan Gambar dengan Flask
