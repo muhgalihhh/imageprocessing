@@ -9,11 +9,6 @@ Aplikasi ini menggunakan Flask untuk membuat antarmuka web yang memungkinkan pen
 
 Pastikan kamu sudah menginstal semua dependensi yang diperlukan untuk menjalankan aplikasi ini. Kamu bisa menginstalnya menggunakan `pip`:
 
-```bash
-pip install -r requirements.txt
-````
-
-`requirements.txt` harus berisi dependensi seperti `Flask`, `Pillow`, dan lainnya yang diperlukan untuk aplikasi ini.
 
 ## Menjalankan Aplikasi
 
