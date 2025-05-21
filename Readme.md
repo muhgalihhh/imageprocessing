@@ -5,25 +5,6 @@ Here’s an updated version of the README file to include instructions for using
 
 Aplikasi ini menggunakan Flask untuk membuat antarmuka web yang memungkinkan pengguna untuk mengunggah gambar dan memprosesnya dengan berbagai tahap pengolahan, seperti segmentasi dan transformasi.
 
-## Struktur Direktori
-```
-
-.
-├── **pycache**/ # Cache untuk modul Python
-├── processed/ # Folder untuk menyimpan hasil pengolahan gambar
-├── static/ # Folder untuk file statis seperti gambar atau file lainnya
-├── templates/ # Folder untuk template HTML
-│ └── index.html # Halaman utama aplikasi
-├── uploads/ # Folder untuk file yang diunggah
-│ ├── 04e35f631757468992a0f557c7e1... # File gambar yang diunggah
-│ ├── filter.py # Skrip untuk pengolahan filter gambar
-│ ├── main.py # Skrip utama aplikasi Flask
-│ ├── segmentasi.py # Skrip untuk segmentasi gambar
-│ ├── studicase.py # Skrip untuk analisis studi kasus
-│ └── transform.py # Skrip untuk transformasi gambar
-
-````
-
 ## Prasyarat
 
 Pastikan kamu sudah menginstal semua dependensi yang diperlukan untuk menjalankan aplikasi ini. Kamu bisa menginstalnya menggunakan `pip`:
