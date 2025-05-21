@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6c63ff;
+            --secondary-color: #4b45b2;
+            --success-color: #28a745;
+            --bg-light: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 15px 20px;
+        }
+        
+        .card-header i {
+            margin-right: 10px;
+        }
+        
+        .processing-panel, .result-panel {
+            background-color: var(--bg-light);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .preview-img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        #camera-container {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        #camera-video {
+            width: 100%;
+            border-radius: 5px;
+        }
+        
+        .method-group {
+            margin-bottom: 15px;
+        }
+        
+        .param-controls {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .nav-tabs .nav-link {
+            border-radius: 8px 8px 0 0;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            border: 1px solid #dee2e6;
+            border-top: none;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            background-color: white;
+        }
+        
+        .method-btn {
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: left;
+            position: relative;
+            padding-right: 30px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .method-btn i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-comparison {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .result-image {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .result-image h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-image"></i> Image Processing App
+            </a>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-cogs"></i> Pengaturan Proses
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5><i class="fas fa-file-image"></i> Pilih Gambar</h5>
+                            <div class="input-group mb-3">
+                                <input type="file" class="form-control" id="image-input" accept="image/*">
+                                <button class="btn btn-outline-secondary" type="button" id="camera-button">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                            <div id="camera-container" class="mb-3">
+                                <video id="camera-video" autoplay></video>
+                                <div class="d-flex justify-content-center mt-2">
+                                    <button id="capture-button" class="btn btn-primary">
+                                        <i class="fas fa-camera"></i> Ambil Foto
+                                    </button>
+                                    <button id="cancel-camera" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-times"></i> Batal
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-container">
+                                <img id="image-preview" class="preview-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Preview">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h5><i class="fas fa-sliders-h"></i> Pilih Metode Preprocessing</h5>
+                            <ul class="nav nav-tabs" id="methodTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="filter-tab" data-bs-toggle="tab" data-bs-target="#filter" type="button" role="tab" aria-controls="filter" aria-selected="true">Filter</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="segmentation-tab" data-bs-toggle="tab" data-bs-target="#segmentation" type="button" role="tab" aria-controls="segmentation" aria-selected="false">Segmentasi</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="transform-tab" data-bs-toggle="tab" data-bs-target="#transform" type="button" role="tab" aria-controls="transform" aria-selected="false">Transform</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="case-tab" data-bs-toggle="tab" data-bs-target="#case" type="button" role="tab" aria-controls="case" aria-selected="false">Studi Kasus</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="methodTabsContent">
+                                <div class="tab-pane fade show active" id="filter" role="tabpanel" aria-labelledby="filter-tab">
+                                    <div class="method-list" id="filter-methods">
+                                        <!-- Filter methods will be populated here -->
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="segmentation" role="tabpanel" aria-labelledby="segmentation-tab">
+                                    <div class="method-list" id="segmentation-methods">
+                                        <!-- Segmentation methods will be populated here -->
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="transform" role="tabpanel" aria-labelledby="transform-tab">
+                                    <div class="method-list" id="transform-methods">
+                                        <!-- Transform methods will be populated here -->
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="case" role="tabpanel" aria-labelledby="case-tab">
+                                    <div class="method-list" id="studicase-methods">
+                                        <!-- Study case methods will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="param-container" class="mb-3" style="display: none;">
+                            <h5><i class="fas fa-tools"></i> Parameter</h5>
+                            <div id="method-params" class="param-controls">
+                                <!-- Parameters will be populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button id="process-button" class="btn btn-success" disabled>
+                                <i class="fas fa-play"></i> Proses Gambar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-image"></i> Hasil Proses
+                    </div>
+                    <div class="card-body">
+                        <div id="loading" class="loading">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-3">Memproses gambar...</p>
+                        </div>
+                        
+                        <div id="result-container" class="text-center">
+                            <div class="result-comparison">
+                                <div class="result-image">
+                                    <h4>Gambar Asli</h4>
+                                    <img id="original-preview" class="preview-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Original">
+                                </div>
+                                <div class="result-image">
+                                    <h4>Hasil Proses</h4>
+                                    <img id="result-preview" class="preview-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Result">
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <p>Belum ada gambar yang diproses.</p>
+                                <p>Silakan upload gambar atau ambil foto terlebih dahulu.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i> Informasi Metode
+                    </div>
+                    <div class="card-body">
+                        <div id="method-info">
+                            <p>Pilih metode preprocessing untuk melihat penjelasan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Method descriptions
+        const methodDescriptions = {
+            // Filter methods
+            "grayscale": "Mengubah gambar berwarna menjadi gambar abu-abu (grayscale). Metode ini berguna untuk menyederhanakan gambar sebelum pemrosesan lebih lanjut.",
+            "gaussian_blur": "Menerapkan blur pada gambar menggunakan filter Gaussian. Efektif untuk mengurangi noise pada gambar.",
+            "median_blur": "Menerapkan blur pada gambar menggunakan filter median. Sangat baik untuk menghilangkan noise 'salt and pepper'.",
+            "bilateral_filter": "Menerapkan filter bilateral yang mengurangi noise tetapi tetap mempertahankan tepi gambar.",
+            "sobel_edge": "Mendeteksi tepi gambar menggunakan operator Sobel. Metode ini mencari gradien intensitas gambar.",
+            "canny_edge": "Mendeteksi tepi gambar menggunakan algoritma Canny. Metode ini lebih canggih dan memberikan hasil yang lebih baik daripada Sobel.",
+            "sharpen": "Mempertajam gambar dengan menekankan perbedaan intensitas piksel yang berdekatan.",
+            "emboss": "Memberikan efek timbul (emboss) pada gambar, menciptakan ilusi 3D.",
+            
+            // Segmentation methods
+            "threshold": "Memisahkan objek dari latar belakang dengan mengkonversi gambar menjadi hitam putih berdasarkan nilai ambang batas.",
+            "adaptive_threshold": "Menerapkan thresholding adaptif di mana nilai ambang batas dihitung untuk area kecil gambar.",
+            "otsu_threshold": "Menerapkan metode thresholding Otsu yang secara otomatis menentukan nilai ambang batas optimal.",
+            "watershed": "Menggunakan algoritma Watershed untuk segmentasi gambar berdasarkan 'topografi' intensitas piksel.",
+            "kmeans": "Menerapkan algoritma K-means untuk mengelompokkan piksel berdasarkan warna atau intensitas.",
+            "color_segmentation": "Memisahkan objek dari latar belakang berdasarkan rentang warna tertentu.",
+            
+            // Transform methods
+            "resize": "Mengubah ukuran gambar sesuai dengan dimensi yang diinginkan.",
+            "rotate": "Memutar gambar sesuai dengan sudut tertentu.",
+            "flip": "Membalik gambar secara horizontal, vertikal, atau keduanya.",
+            "crop": "Memotong bagian gambar sesuai dengan area yang ditentukan.",
+            
+            // Study case methods
+            "face_detection": "Mendeteksi wajah dalam gambar menggunakan Haar Cascade Classifier.",
+            "eye_detection": "Mendeteksi mata dalam gambar menggunakan Haar Cascade Classifier.",
+            "contour_detection": "Mendeteksi kontur atau garis batas objek dalam gambar.",
+            "histogram_equalization": "Meningkatkan kontras gambar dengan meratakan distribusi intensitas piksel."
+        };
+
+        // Global variables
+        let currentFilepath = null;
+        let selectedMethod = null;
+        let methodParams = {};
+        let mediaStream = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch available methods
+            fetch('/methods')
+                .then(response => response.json())
+                .then(data => {
+                    populateMethodsList('filter-methods', data.filter);
+                    populateMethodsList('segmentation-methods', data.segmentation);
+                    populateMethodsList('transform-methods', data.transform);
+                    populateMethodsList('studicase-methods', data.studicase);
+                })
+                .catch(error => console.error('Error fetching methods:', error));
+
+            // File input change event
+            document.getElementById('image-input').addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    uploadFile(file);
+                }
+            });
+
+            // Camera button click event
+            document.getElementById('camera-button').addEventListener('click', function() {
+                openCamera();
+            });
+
+            // Capture button click event
+            document.getElementById('capture-button').addEventListener('click', function() {
+                captureImage();
+            });
+
+            // Cancel camera button click event
+            document.getElementById('cancel-camera').addEventListener('click', function() {
+                closeCamera();
+            });
+
+            // Process button click event
+            document.getElementById('process-button').addEventListener('click', function() {
+                processImage();
+            });
+        });
+
+        // Populate methods list
+        function populateMethodsList(containerId, methods) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            methods.forEach(method => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary method-btn';
+                btn.innerText = method.display;
+                btn.innerHTML += '<i class="fas fa-chevron-right"></i>';
+                btn.dataset.method = method.name;
+                btn.dataset.params = JSON.stringify(method.params);
+                
+                btn.addEventListener('click', function() {
+                    // Deselect all method buttons
+                    document.querySelectorAll('.method-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Select this button
+                    this.classList.add('active');
+                    
+                    // Store selected method
+                    selectedMethod = method.name;
+                    methodParams = method.params;
+                    
+                    // Show method description
+                    document.getElementById('method-info').innerHTML = `
+                        <h5>${method.display}</h5>
+                        <p>${methodDescriptions[method.name] || 'Tidak ada deskripsi tersedia untuk metode ini.'}</p>
+                    `;
+                    
+                    // Show parameters
+                    showMethodParams(method.params);
+                    
+                    // Enable process button if image is loaded
+                    if (currentFilepath) {
+                        document.getElementById('process-button').disabled = false;
+                    }
+                });
+                
+                container.appendChild(btn);
+            });
+        }
+
+        // Show method parameters
+        function showMethodParams(params) {
+            const container = document.getElementById('method-params');
+            container.innerHTML = '';
+            
+            if (Object.keys(params).length === 0) {
+                document.getElementById('param-container').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('param-container').style.display = 'block';
+            
+            for (const [key, value] of Object.entries(params)) {
+                if (Array.isArray(value)) {
+                    // Handle array parameters (like color bounds)
+                    const div = document.createElement('div');
+                    div.className = 'mb-3';
+                    div.innerHTML = `<label class="form-label">${formatParamLabel(key)}</label>`;
+                    
+                    const row = document.createElement('div');
+                    row.className = 'row';
+                    
+                    for (let i = 0; i < value.length; i++) {
+                        const col = document.createElement('div');
+                        col.className = 'col';
+                        col.innerHTML = `
+                            <div class="input-group">
+                                <span class="input-group-text">${i}</span>
+                                <input type="number" class="form-control param-input" 
+                                    data-param="${key}" data-index="${i}" 
+                                    value="${value[i]}" min="0" max="255">
+                            </div>
+                        `;
+                        row.appendChild(col);
+                    }
+                    
+                    div.appendChild(row);
+                    container.appendChild(div);
+                } else {
+                    // Handle scalar parameters
+                    const div = document.createElement('div');
+                    div.className = 'mb-3';
+                    
+                    if (key === 'flip_code') {
+                        div.innerHTML = `
+                            <label class="form-label">Arah Flip</label>
+                            <select class="form-select param-input" data-param="${key}">
+                                <option value="0" ${value === 0 ? 'selected' : ''}>Vertikal (atas-bawah)</option>
+                                <option value="1" ${value === 1 ? 'selected' : ''}>Horizontal (kiri-kanan)</option>
+                                <option value="-1" ${value === -1 ? 'selected' : ''}>Keduanya</option>
+                            </select>
+                        `;
+                    } else {
+                        const inputType = (typeof value === 'number' && !Number.isInteger(value)) ? 'range' : 'number';
+                        const min = (key.includes('sigma') || key === 'scale') ? 0 : (key === 'angle' ? -180 : 0);
+                        const max = (key === 'angle') ? 180 : (key.includes('threshold') ? 255 : 100);
+                        const step = (inputType === 'range') ? 0.1 : 1;
+                        
+                        div.innerHTML = `
+                            <label class="form-label">${formatParamLabel(key)}</label>
+                            <div class="input-group">
+                                <input type="${inputType}" class="form-control param-input" 
+                                    data-param="${key}" value="${value}" 
+                                    min="${min}" max="${max}" step="${step}">
+                                <span class="input-group-text">${getParamUnit(key)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    container.appendChild(div);
+                }
+            }
+            
+            // Add event listeners to parameter inputs
+            document.querySelectorAll('.param-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const param = this.dataset.param;
+                    const index = this.dataset.index;
+                    
+                    if (index !== undefined) {
+                        // Handle array parameters
+                        if (!Array.isArray(methodParams[param])) {
+                            methodParams[param] = [];
+                        }
+                        methodParams[param][index] = parseInt(this.value);
+                    } else {
+                        // Handle scalar parameters
+                        methodParams[param] = parseFloat(this.value);
+                    }
+                });
+            });
+        }
+
+        // Format parameter label
+        function formatParamLabel(param) {
+            const labels = {
+                'kernel_size': 'Ukuran Kernel',
+                'd': 'Diameter Piksel',
+                'sigma_color': 'Sigma Warna',
+                'sigma_space': 'Sigma Spasial',
+                'dx': 'Turunan X',
+                'dy': 'Turunan Y',
+                'ksize': 'Ukuran Kernel',
+                'threshold1': 'Threshold 1',
+                'threshold2': 'Threshold 2',
+                'thresh': 'Nilai Threshold',
+                'max_val': 'Nilai Maksimum',
+                'block_size': 'Ukuran Blok',
+                'C': 'Konstanta C',
+                'k': 'Jumlah Cluster',
+                'attempts': 'Jumlah Percobaan',
+                'lower_bound': 'Batas Bawah',
+                'upper_bound': 'Batas Atas',
+                'width': 'Lebar',
+                'height': 'Tinggi',
+                'percentage': 'Persentase',
+                'angle': 'Sudut Rotasi',
+                'scale': 'Skala',
+                'flip_code': 'Kode Flip',
+                'x': 'Posisi X',
+                'y': 'Posisi Y'
+            };
+            
+            return labels[param] || param.charAt(0).toUpperCase() + param.slice(1).replace('_', ' ');
+        }
+
+        // Get parameter unit
+        function getParamUnit(param) {
+            const units = {
+                'angle': '°',
+                'percentage': '%',
+                'width': 'px',
+                'height': 'px',
+                'x': 'px',
+                'y': 'px'
+            };
+            
+            return units[param] || '';
+        }
+
+        // Upload file
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentFilepath = data.filepath;
+                    
+                    // Show image preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('image-preview').src = e.target.result;
+                        document.getElementById('original-preview').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    // Enable process button if method is selected
+                    if (selectedMethod) {
+                        document.getElementById('process-button').disabled = false;
+                    }
+                } else {
+                    alert('Error uploading file: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error uploading file');
+            });
+        }
+
+        // Open camera
+        function openCamera() {
+            document.getElementById('camera-container').style.display = 'block';
+            
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    mediaStream = stream;
+                    const video = document.getElementById('camera-video');
+                    video.srcObject = stream;
+                })
+                .catch(error => {
+                    console.error('Error accessing camera:', error);
+                    alert('Error accessing camera');
+                    document.getElementById('camera-container').style.display = 'none';
+                });
+        }
+
+        // Close camera
+        function closeCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            
+            document.getElementById('camera-container').style.display = 'none';
+        }
+
+        // Capture image
+        function captureImage() {
+            const video = document.getElementById('camera-video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            const imageData = canvas.toDataURL('image/jpeg');
+            
+            // Show image preview
+            document.getElementById('image-preview').src = imageData;
+            document.getElementById('original-preview').src = imageData;
+            
+            // Upload the captured image
+            fetch('/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `image_data=${encodeURIComponent(imageData)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentFilepath = data.filepath;
+                    
+                    // Enable process button if method is selected
+                    if (selectedMethod) {
+                        document.getElementById('process-button').disabled = false;
+                    }
+                    
+                    // Close camera
+                    closeCamera();
+                } else {
+                    alert('Error uploading captured image: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error uploading captured image');
+            });
+        }
+
+        // Process image
+        function processImage() {
+            if (!currentFilepath || !selectedMethod) {
+                alert('Please select an image and a method first');
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Prepare request data
+            const requestData = {
+                filepath: currentFilepath,
+                method: selectedMethod,
+                params: methodParams
+            };
+            
+            // Send request to server
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result-container').style.display = 'block';
+                
+                if (data.success) {
+                    // Show processed image
+                    document.getElementById('result-preview').src = data.processed_image + '?t=' + new Date().getTime();
+                    document.getElementById('result-container').querySelector('p').textContent = 
+                        'Gambar berhasil diproses menggunakan metode ' + 
+                        document.querySelector(`[data-method="${selectedMethod}"]`).innerText;
+                } else {
+                    alert('Error processing image: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error processing image');
+                
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result-container').style.display = 'block';
+            });
+        }
+
+        // Handle download of processed image
+    function downloadProcessedImage() {
+        const resultImg = document.getElementById('result-preview');
+        if (resultImg.src.includes('processed')) {
+            const link = document.createElement('a');
+            link.href = resultImg.src;
+            link.download = 'processed_image.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert('No processed image available for download');
+        }
+    }
+
+    // Create color picker for color segmentation
+    function createColorPicker(param, values) {
+        const container = document.createElement('div');
+        container.className = 'mb-3';
+        
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.textContent = param === 'lower_bound' ? 'Batas Bawah Warna' : 'Batas Atas Warna';
+        container.appendChild(label);
+        
+        // Create inputs for each color channel (RGB)
+        const channels = ['R', 'G', 'B'];
+        const row = document.createElement('div');
+        row.className = 'row';
+        
+        for (let i = 0; i < 3; i++) {
+            const col = document.createElement('div');
+            col.className = 'col';
+            
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group mb-1';
+            
+            const span = document.createElement('span');
+            span.className = 'input-group-text';
+            span.textContent = channels[i];
+            inputGroup.appendChild(span);
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'form-control color-input';
+            input.dataset.param = param;
+            input.dataset.index = i;
+            input.value = values[i];
+            input.min = 0;
+            input.max = 255;
+            
+            input.addEventListener('change', function() {
+                methodParams[param][i] = parseInt(this.value);
+                updateColorPreview(param);
+            });
+            
+            inputGroup.appendChild(input);
+            col.appendChild(inputGroup);
+            row.appendChild(col);
+        }
+        
+        container.appendChild(row);
+        
+        // Create color preview
+        const preview = document.createElement('div');
+        preview.className = 'color-preview mt-1';
+        preview.style.width = '100%';
+        preview.style.height = '20px';
+        preview.style.borderRadius = '5px';
+        preview.style.backgroundColor = `rgb(${values[0]}, ${values[1]}, ${values[2]})`;
+        preview.id = `${param}-preview`;
+        container.appendChild(preview);
+        
+        return container;
+    }
+
+    // Update color preview
+    function updateColorPreview(param) {
+        const preview = document.getElementById(`${param}-preview`);
+        const values = methodParams[param];
+        preview.style.backgroundColor = `rgb(${values[0]}, ${values[1]}, ${values[2]})`;
+    }
+
+    // Reset parameters to defaults
+    function resetParams(defaultParams) {
+        methodParams = JSON.parse(JSON.stringify(defaultParams));
+        showMethodParams(methodParams);
+    }
+
+    // Toggle histogram display
+    function toggleHistogram() {
+        const histogramContainer = document.getElementById('histogram-container');
+        if (histogramContainer.style.display === 'none') {
+            histogramContainer.style.display = 'block';
+            computeHistogram();
+        } else {
+            histogramContainer.style.display = 'none';
+        }
+    }
+
+    // Compute and display histogram (placeholder - would need backend support)
+    function computeHistogram() {
+        // This would need backend support to compute the actual histogram
+        // For demonstration, we'll just show a placeholder message
+        const histogramContainer = document.getElementById('histogram-container');
+        histogramContainer.innerHTML = '<p>Histogram calculation would require additional backend support.</p>';
+    }
+
+    // Compare original and processed images side by side
+    function compareImages() {
+        const originalImg = document.getElementById('original-preview');
+        const resultImg = document.getElementById('result-preview');
+        
+        if (resultImg.src.includes('processed')) {
+            // Create comparison view
+            const comparisonDiv = document.createElement('div');
+            comparisonDiv.className = 'comparison-view';
+            comparisonDiv.style.position = 'fixed';
+            comparisonDiv.style.top = '0';
+            comparisonDiv.style.left = '0';
+            comparisonDiv.style.width = '100%';
+            comparisonDiv.style.height = '100%';
+            comparisonDiv.style.backgroundColor = 'rgba(0,0,0,0.9)';
+            comparisonDiv.style.zIndex = '1000';
+            comparisonDiv.style.display = 'flex';
+            comparisonDiv.style.flexDirection = 'column';
+            comparisonDiv.style.justifyContent = 'center';
+            comparisonDiv.style.alignItems = 'center';
+            
+            const imagesDiv = document.createElement('div');
+            imagesDiv.style.display = 'flex';
+            imagesDiv.style.width = '90%';
+            imagesDiv.style.maxWidth = '1200px';
+            imagesDiv.style.justifyContent = 'center';
+            
+            const origDiv = document.createElement('div');
+            origDiv.style.flex = '1';
+            origDiv.style.margin = '10px';
+            origDiv.style.textAlign = 'center';
+            
+            const origTitle = document.createElement('h4');
+            origTitle.textContent = 'Original Image';
+            origTitle.style.color = 'white';
+            
+            const origImg = document.createElement('img');
+            origImg.src = originalImg.src;
+            origImg.style.maxWidth = '100%';
+            origImg.style.maxHeight = '70vh';
+            origImg.style.borderRadius = '5px';
+            
+            origDiv.appendChild(origTitle);
+            origDiv.appendChild(origImg);
+            imagesDiv.appendChild(origDiv);
+            
+            const procDiv = document.createElement('div');
+            procDiv.style.flex = '1';
+            procDiv.style.margin = '10px';
+            procDiv.style.textAlign = 'center';
+            
+            const procTitle = document.createElement('h4');
+            procTitle.textContent = 'Processed Image';
+            procTitle.style.color = 'white';
+            
+            const procImg = document.createElement('img');
+            procImg.src = resultImg.src;
+            procImg.style.maxWidth = '100%';
+            procImg.style.maxHeight = '70vh';
+            procImg.style.borderRadius = '5px';
+            
+            procDiv.appendChild(procTitle);
+            procDiv.appendChild(procImg);
+            imagesDiv.appendChild(procDiv);
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn btn-light mt-3';
+            closeBtn.innerHTML = '<i class="fas fa-times"></i> Close Comparison';
+            closeBtn.addEventListener('click', function() {
+                document.body.removeChild(comparisonDiv);
+            });
+            
+            comparisonDiv.appendChild(imagesDiv);
+            comparisonDiv.appendChild(closeBtn);
+            document.body.appendChild(comparisonDiv);
+        } else {
+            alert('No processed image available for comparison');
+        }
+    }
+
+    // Apply a sequence of processing methods (batch processing)
+    function applyProcessingSequence() {
+        if (!currentFilepath) {
+            alert('Please select an image first');
+            return;
+        }
+        
+        // Get selected methods from sequence list
+        const sequenceList = document.getElementById('processing-sequence');
+        const selectedMethods = Array.from(sequenceList.children).map(item => {
+            return {
+                method: item.dataset.method,
+                params: JSON.parse(item.dataset.params)
+            };
+        });
+        
+        if (selectedMethods.length === 0) {
+            alert('Please add at least one method to the sequence');
+            return;
+        }
+        
+        // Show loading indicator
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('result-container').style.display = 'none';
+        
+        // Process methods sequentially
+        processSequential(currentFilepath, selectedMethods, 0);
+    }
+    
+    // Process methods sequentially
+    function processSequential(filepath, methods, index) {
+        if (index >= methods.length) {
+            // All methods processed, hide loading
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result-container').style.display = 'block';
+            return;
+        }
+        
+        // Prepare request data
+        const requestData = {
+            filepath: filepath,
+            method: methods[index].method,
+            params: methods[index].params
+        };
+        
+        // Send request to server
+        fetch('/process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show processed image
+                document.getElementById('result-preview').src = data.processed_image + '?t=' + new Date().getTime();
+                document.getElementById('result-container').querySelector('p').textContent = 
+                    'Processing sequence completed successfully.';
+                
+                // Continue with next method if available
+                if (index < methods.length - 1) {
+                    // Use the output of this method as input for the next
+                    processSequential(filepath, methods, index + 1);
+                } else {
+                    // All methods processed, hide loading
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('result-container').style.display = 'block';
+                }
+            } else {
+                alert('Error in processing sequence: ' + data.error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result-container').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error in processing sequence');
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result-container').style.display = 'block';
+        });
+    }
+
+    // Function to add buttons for additional features
+    function addExtraFeatures() {
+        const resultContainer = document.getElementById('result-container');
+        
+        // Create buttons container
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'mt-3 d-flex justify-content-center gap-2';
+        
+        // Download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'btn btn-success';
+        downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+        downloadBtn.addEventListener('click', downloadProcessedImage);
+        btnContainer.appendChild(downloadBtn);
+        
+        // Compare button
+        const compareBtn = document.createElement('button');
+        compareBtn.className = 'btn btn-primary';
+        compareBtn.innerHTML = '<i class="fas fa-columns"></i> Compare';
+        compareBtn.addEventListener('click', compareImages);
+        btnContainer.appendChild(compareBtn);
+        
+        // Append to result container
+        resultContainer.appendChild(btnContainer);
+    }
+
+    // Initialize extra features once the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add extra feature buttons
+        addExtraFeatures();
+        
+        // Additional initialization
+        document.getElementById('reset-params-btn').addEventListener('click', function() {
+            const activeMethod = document.querySelector('.method-btn.active');
+            if (activeMethod) {
+                resetParams(JSON.parse(activeMethod.dataset.params));
+            }
+        });
+    });
+    </script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>
