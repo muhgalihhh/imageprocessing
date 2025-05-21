@@ -4,11 +4,7 @@
 # Aplikasi Pengolahan Gambar dengan Flask
 
 Aplikasi ini menggunakan Flask untuk membuat antarmuka web yang memungkinkan pengguna untuk mengunggah gambar dan memprosesnya dengan berbagai tahap pengolahan, seperti segmentasi dan transformasi.
-
-## Prasyarat
-
-Pastikan kamu sudah menginstal semua dependensi yang diperlukan untuk menjalankan aplikasi ini. Kamu bisa menginstalnya menggunakan `pip`:
-
+```markdown
 
 ## Menjalankan Aplikasi
 
