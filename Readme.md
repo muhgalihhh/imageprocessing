@@ -2,6 +2,11 @@
    Untuk menjalankan aplikasi Flask, jalankan perintah berikut:
 
    ```bash
+      pip install -r requirements.txt
+
+   ```
+
+   ```bash
    python main.py
    ```
 
