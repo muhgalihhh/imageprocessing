@@ -171,7 +171,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="fas fa-image"></i> Image Processing App
+                <i class="fas fa-image"></i> CitraLab || Image Processing App
             </a>
         </div>
     </nav>
@@ -304,6 +304,8 @@
                         </div>
                     </div>
                 </div>
+                <!-- Histogram compute -->
+                
             </div>
         </div>
     </div>
@@ -335,12 +337,14 @@
             "rotate": "Memutar gambar sesuai dengan sudut tertentu.",
             "flip": "Membalik gambar secara horizontal, vertikal, atau keduanya.",
             "crop": "Memotong bagian gambar sesuai dengan area yang ditentukan.",
+            'affine_transform': "Menerapkan transformasi afine pada gambar, seperti rotasi, translasi, dan skala.",
             
             // Study case methods
-            "face_detection": "Mendeteksi wajah dalam gambar menggunakan Haar Cascade Classifier.",
-            "eye_detection": "Mendeteksi mata dalam gambar menggunakan Haar Cascade Classifier.",
-            "contour_detection": "Mendeteksi kontur atau garis batas objek dalam gambar.",
-            "histogram_equalization": "Meningkatkan kontras gambar dengan meratakan distribusi intensitas piksel."
+            //"face_detection": "Mendeteksi wajah dalam gambar menggunakan Haar Cascade Classifier.",
+            //"eye_detection": "Mendeteksi mata dalam gambar menggunakan Haar Cascade Classifier.",
+            //"contour_detection": "Mendeteksi kontur atau garis batas objek dalam gambar.",
+            //"histogram_equalization": "Meningkatkan kontras gambar dengan meratakan distribusi intensitas piksel."
+            "vintage_photo": "Menerapkan efek foto vintage pada gambar, memberikan nuansa klasik dengan mengubah warna dan kontras.",
         };
 
         // Global variables
@@ -361,7 +365,7 @@
                 })
                 .catch(error => console.error('Error fetching methods:', error));
 
-            // File input change event
+            
             document.getElementById('image-input').addEventListener('change', function(e) {
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
@@ -369,22 +373,22 @@
                 }
             });
 
-            // Camera button click event
+            
             document.getElementById('camera-button').addEventListener('click', function() {
                 openCamera();
             });
 
-            // Capture button click event
+            
             document.getElementById('capture-button').addEventListener('click', function() {
                 captureImage();
             });
 
-            // Cancel camera button click event
+           
             document.getElementById('cancel-camera').addEventListener('click', function() {
                 closeCamera();
             });
 
-            // Process button click event
+            
             document.getElementById('process-button').addEventListener('click', function() {
                 processImage();
             });
@@ -435,7 +439,7 @@
             });
         }
 
-        // Show method parameters
+       
         function showMethodParams(params) {
             const container = document.getElementById('method-params');
             container.innerHTML = '';
@@ -449,7 +453,7 @@
             
             for (const [key, value] of Object.entries(params)) {
                 if (Array.isArray(value)) {
-                    // Handle array parameters (like color bounds)
+                    
                     const div = document.createElement('div');
                     div.className = 'mb-3';
                     div.innerHTML = `<label class="form-label">${formatParamLabel(key)}</label>`;
@@ -508,14 +512,14 @@
                 }
             }
             
-            // Add event listeners to parameter inputs
+            
             document.querySelectorAll('.param-input').forEach(input => {
                 input.addEventListener('change', function() {
                     const param = this.dataset.param;
                     const index = this.dataset.index;
                     
                     if (index !== undefined) {
-                        // Handle array parameters
+                        
                         if (!Array.isArray(methodParams[param])) {
                             methodParams[param] = [];
                         }
@@ -561,7 +565,7 @@
             return labels[param] || param.charAt(0).toUpperCase() + param.slice(1).replace('_', ' ');
         }
 
-        // Get parameter unit
+        
         function getParamUnit(param) {
             const units = {
                 'angle': '°',
@@ -575,7 +579,7 @@
             return units[param] || '';
         }
 
-        // Upload file
+        
         function uploadFile(file) {
             const formData = new FormData();
             formData.append('file', file);
@@ -628,7 +632,7 @@
                 });
         }
 
-        // Close camera
+        
         function closeCamera() {
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
@@ -638,7 +642,7 @@
             document.getElementById('camera-container').style.display = 'none';
         }
 
-        // Capture image
+        
         function captureImage() {
             const video = document.getElementById('camera-video');
             const canvas = document.createElement('canvas');
@@ -648,11 +652,11 @@
             
             const imageData = canvas.toDataURL('image/jpeg');
             
-            // Show image preview
+            
             document.getElementById('image-preview').src = imageData;
             document.getElementById('original-preview').src = imageData;
             
-            // Upload the captured image
+            
             fetch('/upload', {
                 method: 'POST',
                 headers: {
@@ -665,12 +669,12 @@
                 if (data.success) {
                     currentFilepath = data.filepath;
                     
-                    // Enable process button if method is selected
+                    
                     if (selectedMethod) {
                         document.getElementById('process-button').disabled = false;
                     }
                     
-                    // Close camera
+                    
                     closeCamera();
                 } else {
                     alert('Error uploading captured image: ' + data.error);
@@ -682,25 +686,25 @@
             });
         }
 
-        // Process image
+        
         function processImage() {
             if (!currentFilepath || !selectedMethod) {
                 alert('Please select an image and a method first');
                 return;
             }
             
-            // Show loading indicator
+            
             document.getElementById('loading').style.display = 'block';
             document.getElementById('result-container').style.display = 'none';
             
-            // Prepare request data
+            
             const requestData = {
                 filepath: currentFilepath,
                 method: selectedMethod,
                 params: methodParams
             };
             
-            // Send request to server
+           
             fetch('/process', {
                 method: 'POST',
                 headers: {
@@ -728,13 +732,13 @@
                 console.error('Error:', error);
                 alert('Error processing image');
                 
-                // Hide loading indicator
+               
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('result-container').style.display = 'block';
             });
         }
 
-        // Handle download of processed image
+       
     function downloadProcessedImage() {
         const resultImg = document.getElementById('result-preview');
         if (resultImg.src.includes('processed')) {
@@ -749,7 +753,7 @@
         }
     }
 
-    // Create color picker for color segmentation
+    
     function createColorPicker(param, values) {
         const container = document.createElement('div');
         container.className = 'mb-3';
@@ -759,7 +763,7 @@
         label.textContent = param === 'lower_bound' ? 'Batas Bawah Warna' : 'Batas Atas Warna';
         container.appendChild(label);
         
-        // Create inputs for each color channel (RGB)
+        
         const channels = ['R', 'G', 'B'];
         const row = document.createElement('div');
         row.className = 'row';
@@ -797,7 +801,7 @@
         
         container.appendChild(row);
         
-        // Create color preview
+        
         const preview = document.createElement('div');
         preview.className = 'color-preview mt-1';
         preview.style.width = '100%';
@@ -810,39 +814,19 @@
         return container;
     }
 
-    // Update color preview
+    
     function updateColorPreview(param) {
         const preview = document.getElementById(`${param}-preview`);
         const values = methodParams[param];
         preview.style.backgroundColor = `rgb(${values[0]}, ${values[1]}, ${values[2]})`;
     }
 
-    // Reset parameters to defaults
+    
     function resetParams(defaultParams) {
         methodParams = JSON.parse(JSON.stringify(defaultParams));
         showMethodParams(methodParams);
     }
 
-    // Toggle histogram display
-    function toggleHistogram() {
-        const histogramContainer = document.getElementById('histogram-container');
-        if (histogramContainer.style.display === 'none') {
-            histogramContainer.style.display = 'block';
-            computeHistogram();
-        } else {
-            histogramContainer.style.display = 'none';
-        }
-    }
-
-    // Compute and display histogram (placeholder - would need backend support)
-    function computeHistogram() {
-        // This would need backend support to compute the actual histogram
-        // For demonstration, we'll just show a placeholder message
-        const histogramContainer = document.getElementById('histogram-container');
-        histogramContainer.innerHTML = '<p>Histogram calculation would require additional backend support.</p>';
-    }
-
-    // Compare original and processed images side by side
     function compareImages() {
         const originalImg = document.getElementById('original-preview');
         const resultImg = document.getElementById('result-preview');
@@ -922,7 +906,6 @@
         }
     }
 
-    // Apply a sequence of processing methods (batch processing)
     function applyProcessingSequence() {
         if (!currentFilepath) {
             alert('Please select an image first');
@@ -947,11 +930,11 @@
         document.getElementById('loading').style.display = 'block';
         document.getElementById('result-container').style.display = 'none';
         
-        // Process methods sequentially
+        
         processSequential(currentFilepath, selectedMethods, 0);
     }
     
-    // Process methods sequentially
+   
     function processSequential(filepath, methods, index) {
         if (index >= methods.length) {
             // All methods processed, hide loading
@@ -960,14 +943,14 @@
             return;
         }
         
-        // Prepare request data
+        
         const requestData = {
             filepath: filepath,
             method: methods[index].method,
             params: methods[index].params
         };
         
-        // Send request to server
+        
         fetch('/process', {
             method: 'POST',
             headers: {
@@ -1006,38 +989,32 @@
         });
     }
 
-    // Function to add buttons for additional features
     function addExtraFeatures() {
         const resultContainer = document.getElementById('result-container');
         
-        // Create buttons container
         const btnContainer = document.createElement('div');
         btnContainer.className = 'mt-3 d-flex justify-content-center gap-2';
         
-        // Download button
         const downloadBtn = document.createElement('button');
         downloadBtn.className = 'btn btn-success';
         downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
         downloadBtn.addEventListener('click', downloadProcessedImage);
         btnContainer.appendChild(downloadBtn);
         
-        // Compare button
         const compareBtn = document.createElement('button');
         compareBtn.className = 'btn btn-primary';
         compareBtn.innerHTML = '<i class="fas fa-columns"></i> Compare';
         compareBtn.addEventListener('click', compareImages);
         btnContainer.appendChild(compareBtn);
         
-        // Append to result container
         resultContainer.appendChild(btnContainer);
     }
 
-    // Initialize extra features once the DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        // Add extra feature buttons
+       
         addExtraFeatures();
         
-        // Additional initialization
+      
         document.getElementById('reset-params-btn').addEventListener('click', function() {
             const activeMethod = document.querySelector('.method-btn.active');
             if (activeMethod) {

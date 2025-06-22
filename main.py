@@ -128,6 +128,8 @@ def process_image(filepath, method, params=None):
             result, _ = studicase.detect_contours(image, threshold1, threshold2)
         elif method == "histogram_equalization":
             result, _ = studicase.histogram_equalization(image)
+        elif method == "vintage_photo":
+            result = studicase.apply_vintage_grunge(image)
         
         # Transform methods
         elif method == "resize":
@@ -243,15 +245,15 @@ def get_methods():
             {"name": "threshold", "display": "Basic Threshold", "params": {"thresh": 127, "max_val": 255}},
             {"name": "adaptive_threshold", "display": "Adaptive Threshold", "params": {"max_val": 255, "block_size": 11, "C": 2}},
             {"name": "otsu_threshold", "display": "Otsu Threshold", "params": {}},
-            {"name": "watershed", "display": "Watershed Segmentation", "params": {}},
-            {"name": "kmeans", "display": "K-Means Segmentation", "params": {"k": 3, "attempts": 10}},
-            {"name": "color_segmentation", "display": "Color Segmentation", "params": {"lower_bound": [0, 0, 0], "upper_bound": [255, 255, 255]}}
+            {"name": "kmeans", "display": "K-Means Segmentation", "params": {"k": 3, "attempts": 10}}
         ],
         "studicase": [
-            {"name": "face_detection", "display": "Face Detection", "params": {}},
-            {"name": "eye_detection", "display": "Eye Detection", "params": {}},
-            {"name": "contour_detection", "display": "Contour Detection", "params": {"threshold1": 50, "threshold2": 150}},
-            {"name": "histogram_equalization", "display": "Histogram Equalization", "params": {}}
+            
+            {"name": "vintage_photo", "display": "Vintage Photo", "params": {}},
+            # {"name": "face_detection", "display": "Face Detection", "params": {}},
+            # {"name": "eye_detection", "display": "Eye Detection", "params": {}},
+            # {"name": "contour_detection", "display": "Contour Detection", "params": {"threshold1": 50, "threshold2": 150}},
+            # {"name": "histogram_equalization", "display": "Histogram Equalization", "params": {}}
         ],
         "transform": [
             {"name": "resize", "display": "Resize", "params": {"width": 300, "height": 300, "percentage": 50}},
@@ -262,6 +264,29 @@ def get_methods():
     }
     
     return jsonify(methods)
+
+@app.route('/compute_histogram', methods=['POST'])
+def compute_histogram():
+    data = request.get_json()
+    image_path = data.get('image_path')
+
+    # Validate image path
+    if 'processed' in image_path:
+        filename = os.path.basename(image_path)
+        filepath = os.path.join(app.config['PROCESSED_FOLDER'], filename)
+        image = cv2.imread(filepath)
+
+        if image is None:
+            return jsonify({"success": False, "error": "Failed to read image"}), 400
+
+        # Calculate the histogram
+        hist = cv2.calcHist([image], [0], None, [256], [0, 256])
+        hist_list = hist.flatten().tolist()  # Convert to list to send in response
+
+        return jsonify({"success": True, "histogram": hist_list})
+    else:
+        return jsonify({"success": False, "error": "No processed image available for histogram computation"}), 400
+
 
 if __name__ == '__main__':
     app.run(debug=True)
